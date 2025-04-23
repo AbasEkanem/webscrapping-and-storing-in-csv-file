@@ -1,22 +1,51 @@
-import requests 
+import requests
 from bs4 import BeautifulSoup
 import csv
 import os
-siteToScrape = "https://www.airbnb.com/s/Lekki-Lagos-NG/homes?omni_page_id=36021&map_toggle=true&min_bedrooms=2&dynamic_product_ids%5B%5D=1366212720802888186&room_types%5B%5D=Entire%20home%2Fapt&category_tag=Tag%3A677&checkin=2025-04-29&checkout=2025-05-04&date_picker_type=calendar&search_mode=flex_destinations_search&refinement_paths%5B%5D=%2Fhomes&place_id=ChIJZ0PH9V33OxARSs3B1vl9fmo&flexible_trip_lengths%5B%5D=one_week&location_search=MIN_MAP_BOUNDS&monthly_start_date=2025-05-01&monthly_length=3&monthly_end_date=2025-08-01&price_filter_input_type=2&price_filter_num_nights=5&channel=EXPLORE&selected_filter_order%5B%5D=room_types%3AEntire%20home%2Fapt&selected_filter_order%5B%5D=min_bedrooms%3A2&ne_lat=6.502531416735711&ne_lng=3.5300245592085275&sw_lat=6.389661415561012&sw_lng=3.3782830219393816&zoom=12.655108628445351&zoom_level=12.655108628445351&search_by_map=true&search_type=user_map_move&query=Lekki%20Lagos%20NG"
-response = requests.get(siteToScrape)
-parsedresponse = BeautifulSoup(response.text, "html.parser")
-Response_folder1 = "Scraped_data_file"
-Response_folder2 = "C:\\Users\\user\\Desktop\\scraped_folder2"
-os.makedirs(Response_folder2, exist_ok="true")
-path_to_scraped_folder = os.path.join(Response_folder2, "scrappedData.csv")
-ExtractData = parsedresponse.find_all("image")
-Storage = [ ]
-header = ["Title", "ApartmentType", "ApartmentName"]
-for contents in ExtractData:
-    print(contents)
-    Storage.append([contents.get_text(stripe = True)])
-with open(path_to_scraped_folder, mode="w", newline= "", encoding="utf-8") as file:
-    writeFile = csv.writer(file)
-    writeFile.writerows(header)
-    writeFile.writerows(ExtractData)
-print(f"file successfully Extracted and written into:{path_to_scraped_folder}")
+
+# Get the URL of the site
+url = "https://coinmarketcap.com/rankings/exchanges/"
+
+# Get the response and parse it using html.parser
+response = requests.get(url)
+
+# Feed the raw response to the HTML parser using BeautifulSoup
+parsedResponse = BeautifulSoup(response.text, "html.parser")
+
+# Extract the data (find the table or specific content you're after)
+# We'll use the 'table' tag, then identify the rows (tr) and columns (td)
+table = parsedResponse.find('table')  # Assuming there's a table tag you want to scrape
+rows = table.find_all('tr')  # Get all rows in the table
+
+# Create the file directory
+crypto_scraping_folder = "C:\\Users\\user\\Desktop\\crypto_scrapper_folder"
+os.makedirs(crypto_scraping_folder, exist_ok=True)  # Ensure folder is created
+
+# Define the file path for the CSV
+crypto_file_path = os.path.join(crypto_scraping_folder, "bitcoin_scraper.csv")
+
+# Write data to CSV file
+with open(crypto_file_path, mode="w", newline="", encoding="utf-8") as file:
+    # Define the headers for the CSV
+    headers = ["Exchange", "Trading_volume(24hours)", "Average_Liquidity", "Weekly_visits",
+               "Market_coins", "Fiat_supported"]
+    writeIn = csv.writer(file)
+    writeIn.writerow(headers)
+
+    # Loop through each row in the table (skipping the header row)
+    for row in rows[1:11]:
+        columns = row.find_all('td')  # Find all columns in the current row
+        
+        if len(columns) >= 6:  # Ensure there are enough columns to match our headers
+            # Extract the text from each column, strip any extra spaces
+            exchange = columns[0].text.strip()
+            trading_volume = columns[1].text.strip()
+            average_liquidity = columns[2].text.strip()
+            weekly_visits = columns[3].text.strip()
+            market_coins = columns[4].text.strip()
+            fiat_supported = columns[5].text.strip()
+
+            # Write the extracted row to the CSV file
+            writeIn.writerow([exchange, trading_volume, average_liquidity, weekly_visits, market_coins, fiat_supported])
+
+print("Data extraction complete, and CSV file saved.")
